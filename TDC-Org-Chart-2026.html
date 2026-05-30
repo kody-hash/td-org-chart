@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top Drawer Cabinetry — 2026 Org Chart</title>
+<style>
+  :root{
+    --canvas:#06070a;
+    --grid:rgba(255,255,255,.035);
+    --card:#13161d;
+    --card-2:#171b23;
+    --line:#2b3340;
+    --conn:#34404f;
+    --text:#eef1f6;
+    --muted:#94a0b2;
+    --red:#e0231f;
+    --red-dk:#b81b18;
+    --exec:#e0231f;
+    --finance:#3b82f6;
+    --marketing:#a855f7;
+    --sales:#10b981;
+    --ops:#f59e0b;
+    --shadow:0 10px 34px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--canvas);color:var(--text);
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  }
+
+  /* White branded header */
+  header.top{background:#fff;color:#15171c;flex:0 0 auto;z-index:30;box-shadow:0 2px 14px rgba(0,0,0,.4)}
+  .redbar{height:6px;background:linear-gradient(90deg,var(--red),var(--red-dk))}
+  .headpad{padding:16px 26px 14px}
+  .brandrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{width:54px;height:54px;flex:0 0 auto;filter:drop-shadow(0 3px 8px rgba(224,35,31,.28))}
+  .brandtext h1{margin:0;font-size:19px;font-weight:800;color:#15171c}
+  .brandtext p{margin:2px 0 0;color:#6b7280;font-size:12.5px;font-weight:500}
+  .brandtext .accent{color:var(--red);font-weight:700}
+  .spacer{flex:1}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{background:#fff;border:1.5px solid #e2e4ea;color:#15171c;padding:7px 13px;border-radius:8px;font-size:13px;cursor:pointer;transition:.15s;font-weight:600}
+  .btn:hover{border-color:var(--red);color:var(--red)}
+  .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.primary:hover{background:var(--red-dk);border-color:var(--red-dk)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .legend span{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#6b7280;font-weight:500}
+  .dot{width:10px;height:10px;border-radius:50%}
+
+  /* Canvas */
+  .canvas{
+    flex:1 1 auto;position:relative;overflow:auto;cursor:grab;
+    background-color:var(--canvas);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:46px 46px;
+  }
+  .canvas.grabbing{cursor:grabbing}
+  .canvas::-webkit-scrollbar{width:12px;height:12px}
+  .canvas::-webkit-scrollbar-thumb{background:#222833;border-radius:8px;border:3px solid var(--canvas)}
+  .stage{padding:48px 80px 120px;display:inline-block;min-width:100%;transform-origin:50% 0}
+
+  /* Tree (top-down with elbow connectors) */
+  .tree, .tree ul{position:relative;margin:0;padding:0;list-style:none}
+  .tree ul{display:flex;justify-content:center;padding-top:52px}
+  .tree li{position:relative;padding:52px 14px 0;display:flex;flex-direction:column;align-items:center}
+  /* connectors — tick height (28) stops at the top edge of the avatar bubble */
+  .tree li::before,.tree li::after{content:'';position:absolute;top:0;width:50%;height:28px;border-top:2px solid var(--conn)}
+  .tree li::before{right:50%}
+  .tree li::after{left:50%;border-left:2px solid var(--conn)}
+  .tree li:first-child::before,.tree li:last-child::after{border:0 none}
+  .tree li:last-child::before{border-right:2px solid var(--conn)}
+  .tree>li{padding-top:0}
+  .tree>li::before,.tree>li::after{display:none}
+  .tree ul::before{content:'';position:absolute;top:0;left:50%;height:52px;border-left:2px solid var(--conn)}
+  .tree li.collapsed>ul{display:none}
+
+  /* Node card */
+  .card{
+    position:relative;z-index:1;width:196px;background:linear-gradient(180deg,var(--card-2),var(--card));
+    border:1px solid var(--line);border-radius:14px;padding:30px 12px 16px;cursor:pointer;
+    transition:.16s;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .card .avatar{
+    position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+    width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:#fff;border:2.5px solid var(--canvas);
+    box-shadow:0 0 0 2px var(--nodecolor),0 4px 10px rgba(0,0,0,.5);
+    background:radial-gradient(circle at 50% 35%, color-mix(in srgb,var(--nodecolor) 55%, #11141a), #0d1014);
+  }
+  .card .role{font-weight:700;font-size:13.5px;line-height:1.25;color:#fff;margin-top:2px}
+  .card .person{color:var(--muted);font-size:11px;margin-top:4px;line-height:1.3}
+  .card .vac{color:var(--red);font-size:10.5px;font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+  .card .deptband{position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;background:var(--nodecolor)}
+
+  /* collapse toggle */
+  .toggle{
+    position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:4px;background:var(--card-2);
+    border:1.5px solid var(--line);color:var(--muted);border-radius:20px;padding:2px 9px;
+    font-size:11px;font-weight:700;cursor:pointer;z-index:3;transition:.15s;
+  }
+  .toggle:hover{border-color:var(--nodecolor);color:#fff}
+  .toggle .tchev{transition:.2s;display:inline-block;font-size:9px}
+  li.collapsed > .card .toggle .tchev{transform:rotate(-90deg)}
+  li.collapsed > .card .toggle{border-color:var(--nodecolor);color:#fff}
+
+  /* zoom control */
+  .zoombar{position:absolute;right:18px;bottom:18px;display:flex;align-items:center;gap:2px;
+    background:#11141a;border:1px solid var(--line);border-radius:10px;padding:4px;z-index:25;box-shadow:var(--shadow)}
+  .zoombar button{width:32px;height:30px;background:transparent;border:none;color:var(--text);font-size:17px;cursor:pointer;border-radius:7px}
+  .zoombar button:hover{background:#1d212b;color:var(--red)}
+  .zoombar .zlabel{min-width:46px;text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+
+  .hint{position:absolute;left:18px;bottom:18px;color:#5b6675;font-size:11.5px;z-index:25;
+    background:rgba(10,12,16,.7);padding:5px 10px;border-radius:8px;border:1px solid #1c2129}
+
+  /* Detail drawer (dark) */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+  .overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:480px;max-width:92vw;z-index:70;
+    background:#10131a;border-left:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(105%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{padding:22px 24px;border-bottom:1px solid var(--line);position:relative}
+  .drawer-head .deptpill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:12px}
+  .drawer-head h3{margin:0;font-size:20px;font-weight:800;color:#fff}
+  .drawer-head .dperson{color:var(--muted);font-size:14px;margin-top:5px}
+  .drawer-close{position:absolute;top:18px;right:18px;background:var(--card-2);border:1px solid var(--line);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1}
+  .drawer-close:hover{border-color:var(--red);color:var(--red)}
+  .drawer-body{padding:8px 24px 28px;overflow-y:auto}
+  .sec{margin-top:20px}
+  .sec h4{margin:0 0 9px;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--accent)}
+  .sec.neg h4{color:#ff6b66}
+  .outcome{font-size:14px;line-height:1.5;color:var(--text);background:var(--card-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  ul.li{margin:0;padding-left:18px}
+  ul.li li{font-size:13.5px;line-height:1.55;margin-bottom:7px;color:#c9d0db}
+  ul.li li strong{color:#fff}
+  .group{margin-bottom:10px}
+  .group .gt{font-size:13px;font-weight:700;color:#fff;margin:12px 0 5px}
+
+  @media(max-width:620px){.headpad{padding:14px 14px 12px}.stage{padding:36px 26px 100px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="redbar"></div>
+  <div class="headpad">
+    <div class="brandrow">
+      <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Top Drawer Cabinetry">
+        <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#e0231f" stroke-width="5"/>
+        <text x="50" y="56" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="900" font-size="33" fill="#e0231f" letter-spacing="1">TDC</text>
+        <text x="50" y="72" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="7" fill="#15171c" letter-spacing="1.3">TOP DRAWER CABINETRY</text>
+      </svg>
+      <div class="brandtext">
+        <h1>Top Drawer Cabinetry</h1>
+        <p><span class="accent">2026 Organizational Chart</span> &nbsp;&middot;&nbsp; Phoenix, AZ</p>
+      </div>
+      <div class="spacer"></div>
+      <div class="controls">
+        <button class="btn primary" id="expandAll">Expand all</button>
+        <button class="btn" id="collapseAll">Collapse to top</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--exec)"></i>Executive</span>
+      <span><i class="dot" style="background:var(--finance)"></i>Finance</span>
+      <span><i class="dot" style="background:var(--marketing)"></i>Marketing</span>
+      <span><i class="dot" style="background:var(--sales)"></i>Sales</span>
+      <span><i class="dot" style="background:var(--ops)"></i>Operations</span>
+      <span style="margin-left:auto;color:#9aa3b2">Click a node for detail &middot; drag to pan</span>
+    </div>
+  </div>
+</header>
+
+<div class="canvas" id="canvas">
+  <div class="stage" id="stage"></div>
+  <div class="zoombar">
+    <button id="zoomOut" title="Zoom out">&minus;</button>
+    <span class="zlabel" id="zlabel">100%</span>
+    <button id="zoomIn" title="Zoom in">+</button>
+    <button id="zoomFit" title="Reset" style="font-size:13px">⤢</button>
+  </div>
+  <div class="hint">Drag empty space to pan &middot; click a node to expand details</div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <button class="drawer-close" id="drawerClose">&times;</button>
+    <span class="deptpill" id="dPill"></span>
+    <h3 id="dTitle"></h3>
+    <div class="dperson" id="dPerson"></div>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+</aside>
+
+<script>
+const COLORS={exec:'#e0231f',finance:'#3b82f6',marketing:'#a855f7',sales:'#10b981',ops:'#f59e0b'};
+const DEPTNAME={exec:'Executive',finance:'Finance',marketing:'Marketing',sales:'Sales',ops:'Operations'};
+
+const TREE={
+  dept:'exec', role:'CEO', person:'Kody Mikkelsen',
+  outcome:'Grow enterprise value: bigger, more profitable, more durable business each year.',
+  responsibilities:[
+    'Set 1-year, 90-day, and monthly targets for revenue, profit, and key KPIs.',
+    'Decide company strategy: markets you serve, offers you sell, how you win.',
+    'Hire, fire, and coach leaders: Sales Leader, Ops Manager (Kim), Finance/Payroll, Marketing vendors.',
+    'Own culture and standards: what is acceptable, what is not.',
+    'Maintain key relationships: top GCs and investors, landlord, biggest vendors, bank.',
+    'Run weekly leadership meeting: review scorecards, kill bottlenecks, assign priorities.',
+    'Protect focus: say "no" to distractions, new lines, random one-off projects.'
+  ],
+  not:['Daily scheduling, chasing orders, working individual leads, solving every small problem.'],
+  children:[
+    {
+      dept:'finance', role:'Acting CFO', person:'Kody Mikkelsen',
+      outcome:'The company never runs out of cash and hits target profit.',
+      responsibilities:[
+        'Own financial model: revenue, gross margin, overhead, profit targets.',
+        'Review monthly financials from bookkeeper, compare to plan, decide adjustments.',
+        'Approve pricing structure and discounts, make sure job-level margins are healthy.',
+        'Decide budgets: marketing spend, hiring timing, major equipment or facility spend.',
+        'Monitor cash: minimum cash buffer, planned draws to you, planned reinvestment.',
+        'Work primarily through the Controller (who manages the bookkeeper) for higher-level oversight; coordinate with the CPA so books stay clean and tax strategy is intentional.'
+      ],
+      not:['Entering transactions, running payroll, collecting payments.'],
+      children:[
+        {dept:'finance',role:'Fractional Controller',person:'Joshua Lemman',
+          outcome:'Oversight and management of bookkeeping and financial operations.',
+          responsibilities:[
+            'Monthly oversight — confirm the financial system is structured correctly and run correctly.',
+            'Make sure the bookkeeper is doing what\'s needed to produce accurate reports.',
+            'Pull accurate reports and provide data (inventory, sales, etc.) to guide decisions.',
+            'Oversee and manage bookkeeping and financial operations.'
+          ],
+          not:['Physical / cycle inventory counts.','Day-to-day clerical bookkeeping.'],
+          children:[
+            {dept:'finance',role:'Bookkeeper / HR / Payroll',person:'Jackie Brown · in-house',responsibilities:[
+              'Enters and reconciles all transactions; handles AR / AP and categorization.',
+              'Produces P&L, balance sheet, and cash flow.',
+              'Runs payroll in-house: timecards, hours, overtime, PTO, bonuses — verify and process.',
+              'Handles HR: onboarding paperwork, employee records, and basic HR admin.'
+            ]}
+          ]},
+        {dept:'finance',role:'CPA',person:'',vacant:true,
+          note:'Switching from Jordan Murray — replacement undetermined.',
+          responsibilities:[
+            'Files returns, advises on tax structure.',
+            'Quarterly meetings (Q3 & Q4 are a must).',
+            'Advises on write-offs.'
+          ]}
+      ]
+    },
+    {
+      dept:'marketing', role:'Marketing Manager', person:'Kody M.',
+      outcome:'Own the strategy, offers, and budget that drive qualified leads.',
+      responsibilities:[
+        'Overall marketing strategy.',
+        'Offers / angles / messaging.',
+        'Budget & ROAS targets.',
+        'Final approval on creatives and landing pages.',
+        'Channel priorities (how much to push ads vs. organic vs. referrals).'
+      ],
+      children:[
+        {dept:'marketing',role:'Paid Ads / SEO',person:'Jummp Marketing — Nick Mews (Account Mgr) · Kalen (Ads Mgr)',responsibilities:[
+          'Run paid ads (Meta / Google / etc.) based on strategy.',
+          'Manage SEO and website performance.',
+          'Implement tracking and conversion pixels.',
+          'Send weekly summary: spend, leads, CPL, ROAS, top creatives.'
+        ],groups:[{gt:'Cadence',items:['Weekly KPI report.','Bi-weekly or monthly strategy call (Kody leads).']}]},
+        {dept:'marketing',role:'Social Media & Community Manager',person:'Amy Leon',responsibilities:[
+          'Post daily content + Stories from your recordings.',
+          'Like / comment daily on GC, investor, remodeler accounts.',
+          'Reply to DMs and route all "I\'m interested" convos to the Setter.',
+          'Grow followers and engagement (track simple KPIs).',
+          'Maintain a light content calendar (what\'s posting each day).',
+          'Clip / organize videos so the agency (or you) can use them in ads.'
+        ],groups:[{gt:'Cadence',items:['Quick weekly huddle: what\'s working, what to record next week.']}]}
+      ]
+    },
+    {
+      dept:'sales', role:'Sales Manager', person:'Kody M.',
+      outcome:'Hit monthly revenue target with a consistent, repeatable sales system.',
+      responsibilities:[
+        'Set clear targets: total revenue, rep revenue, deals, sets, show rate, close rate.',
+        'Manage the team: 5 Closers, the Setter, and the Receptionist.',
+        'Also actively sells (carries a closer load).',
+        'Ensure speed to lead: every inbound lead contacted within minutes, not days.',
+        'Run weekly sales meetings and one-on-ones: pipeline review, role play, deal triage.',
+        'Own scripts and process for showroom, in-home measures, and follow-up.',
+        'Ensure clean handoff to Ops: every closed deal entered correctly, no mystery jobs.',
+        'Recruit, onboard, and ramp new setters and reps when capacity is needed.',
+        'Review performance weekly; coach up or move out low performers.'
+      ],
+      not:['Placing cabinet orders, scheduling deliveries, doing payroll, fixing ops fires.'],
+      children:[
+        {dept:'sales',role:'Setter',person:'Alaina Paulsen',responsibilities:[
+          'Owns ALL inbound leads: ads, website, referrals, social DMs, walk-ins (via receptionist).',
+          'Calls / texts immediately, follows up relentlessly.',
+          'Books showroom appointments and on-site measures.'
+        ],groups:[{gt:'KPIs',items:['Dials, conversations, sets, show rate.']}]},
+        {dept:'sales',role:'Closers',team:true,person:'Sales reps',
+          outcome:'Run appointments and close deals to hit the revenue target.',
+          responsibilities:[
+            'Run showroom + in-home appointments.',
+            'Build quotes, close deals.',
+            'Update CRM / job sheet.'
+          ],
+          children:[
+            {dept:'sales',indiv:true,role:'Ronnie',person:'Closer',note:'See the Closers role for full responsibilities.'},
+            {dept:'sales',indiv:true,role:'Jon',person:'Closer',note:'See the Closers role for full responsibilities.'},
+            {dept:'sales',indiv:true,role:'Correll',person:'Closer',note:'See the Closers role for full responsibilities.'},
+            {dept:'sales',indiv:true,role:'Junior',person:'Closer',note:'See the Closers role for full responsibilities.'},
+            {dept:'sales',indiv:true,role:'Zach',person:'Closer',note:'See the Closers role for full responsibilities.'}
+          ]},
+        {dept:'sales',role:'Receptionist',person:'Amy Leon',outcome:'Priority 1: Front desk ops / sales support.',responsibilities:[
+          'Answer phones, greet walk-ins.',
+          'Get every prospect to a Setter / Rep.',
+          'Walkie-talkie the warehouse on pickups so customers are served fast and accurately.',
+          'Maintain a clean showroom and break room.'
+        ],not:['No quoting, no follow-up ownership.','Answering pricing, specs, or changes to orders.']}
+      ]
+    },
+    {
+      dept:'ops', role:'Operations Manager', person:'Kim',
+      outcome:'Orders flow accurately from sale to delivery; ops KPIs stay green.',
+      groups:[{gt:'Owns',items:[
+        'Order entry & verification.',
+        'Purchasing & fill-ins.',
+        'Inventory accuracy.',
+        'Delivery / pickup scheduling.',
+        'Ops KPIs (lead time, on-time %, errors, remakes).'
+      ]}],
+      not:['Receiving payments in QB Enterprise.','Daily batched commissions work.'],
+      note:'Direct reports under Operations: Jesse Barrios & Amy Leon.',
+      children:[
+        {dept:'ops',role:'Warehouse Lead',person:'Jesse Barrios',
+          outcome:'All jobs are picked, built, and delivered accurately, on time, and damage-free — with a clean, safe warehouse.',
+          groups:[
+            {gt:'Daily plan',items:['Gets schedule / priorities from Kim.','Runs quick morning huddle: who\'s picking, assembling, delivering.']},
+            {gt:'Team execution',items:['Assigns pick lists and build tasks.','Confirms trucks are loaded correctly and on time.']},
+            {gt:'Inventory & space',items:['Keeps warehouse organized and labeled.','Does simple cycle counts; flags shortages / damages to Kim.']},
+            {gt:'Quality control',items:['Spot-checks picked orders vs. sheets.','Spot-checks assemblies before staging or loading.']},
+            {gt:'Equipment & safety',items:['Keeps tools, trucks, forklifts, and PPE in working order.','Reports any issues to Kim.']}
+          ],
+          not:['Scheduling customers, buying product, changing orders — those stay with Kim.'],
+          children:[
+            {dept:'ops',role:'Assemblers',team:true,person:'Build team',
+              outcome:'Cabinets are built to spec and arrive at the job in one piece.',
+              responsibilities:[
+                'Assemble cabinets and vanities per drawings / SOPs.',
+                'Report missing / incorrect parts to Warehouse Lead immediately.',
+                'Stage completed jobs in the correct area, ready for loading.'
+              ],
+              children:[
+                {dept:'ops',indiv:true,role:'Jesse',person:'Assembler',note:'See the Assemblers role for full responsibilities.'},
+                {dept:'ops',indiv:true,role:'Colton',person:'Assembler',note:'See the Assemblers role for full responsibilities.'},
+                {dept:'ops',indiv:true,role:'Gustavo',person:'Assembler',note:'See the Assemblers role for full responsibilities.'},
+                {dept:'ops',indiv:true,role:'Adrian',person:'Assembler',note:'See the Assemblers role for full responsibilities.'}
+              ]},
+            {dept:'ops',role:'Pickers / Loaders / Delivery',team:true,person:'Warehouse & delivery',
+              outcome:'Pick, load, deliver, and run the warehouse — every order out accurately, on time, and damage-free.',
+              groups:[
+                {gt:'Picking & loading',items:['Pull all items for each job from pick sheets.','Label and stage jobs in the correct location.','Load trucks and customer pickups; quick visual checks for damage or missing pieces.']},
+                {gt:'Deliveries & runs',items:['Run deliveries to job sites and customers.','Handle vendor runs and pickups.','Protect product and property; get signatures / photos as needed.']},
+                {gt:'Warehouse & inventory',items:['Keep the warehouse clean, organized, and labeled.','Help with inventory counts and housekeeping.','Serve walk-in / pickup customers at the warehouse.']}
+              ],
+              children:[
+                {dept:'ops',indiv:true,role:'Ruben',person:'Picker / Loader / Driver',note:'See the Pickers / Loaders / Delivery role for full responsibilities.'},
+                {dept:'ops',indiv:true,role:'Open Spot',person:'1 open spot',vacant:true,note:'Recently opened — to be filled.'}
+              ]}
+          ]}
+      ]
+    }
+  ]
+};
+
+/* ---------- helpers ---------- */
+function personCount(node){
+  if(node.team||node.vacant) return 0;     // group nodes & open roles add no headcount
+  if(node.indiv) return 1;
+  const p=node.person||'';
+  if(!p) return 0;
+  let s=p.includes('—')?p.split('—')[1]:p; // drop company prefix (e.g. "Jummp Marketing —")
+  const names=s.split('·').map(x=>x.trim()).filter(Boolean);
+  return names.length||1;
+}
+function headcount(node){
+  let n=0;
+  (node.children||[]).forEach(c=>{ n+=personCount(c)+headcount(c); });
+  return n;
+}
+function initials(node){
+  if(node.team) return String((node.children||[]).length);
+  if(node.vacant) return '?';
+  let src=node.indiv?node.role:(node.person||'');
+  if(src.includes('—')) src=src.split('—')[1]||src;
+  const people=src.split('·').map(s=>s.trim()).filter(Boolean);
+  if(people.length>1) return String(people.length);
+  let name=(people[0]||node.role).replace(/\(.*?\)/g,'').replace(/\b(in-house|floater)\b/gi,'').trim();
+  const parts=name.split(/\s+/).filter(Boolean);
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+}
+
+/* ---------- render tree ---------- */
+function buildCard(node){
+  const c=COLORS[node.dept];
+  const card=document.createElement('div');
+  card.className='card';
+  card.style.setProperty('--nodecolor',c);
+  card.innerHTML=`<div class="deptband"></div>
+    <div class="avatar">${initials(node)}</div>
+    <div class="role">${node.role}</div>`+
+    (node.vacant?`<div class="vac">Open role</div>`:(node.person?`<div class="person">${node.person}</div>`:''));
+  card.addEventListener('click',e=>{ if(e.target.closest('.toggle'))return; openDrawer(node); });
+  return card;
+}
+function renderNode(node){
+  const li=document.createElement('li');
+  const card=buildCard(node);
+  li.appendChild(card);
+  const kids=node.children||[];
+  if(kids.length){
+    const tg=document.createElement('div');
+    tg.className='toggle';
+    tg.innerHTML=`<span class="tchev">▾</span><span>${headcount(node)}</span>`;
+    tg.addEventListener('click',e=>{e.stopPropagation();li.classList.toggle('collapsed');});
+    card.appendChild(tg);
+    const ul=document.createElement('ul');
+    kids.forEach(k=>ul.appendChild(renderNode(k)));
+    li.appendChild(ul);
+  }
+  return li;
+}
+const stage=document.getElementById('stage');
+const tree=document.createElement('ul');
+tree.className='tree';
+tree.appendChild(renderNode(TREE));
+stage.appendChild(tree);
+
+/* ---------- drawer ---------- */
+const overlay=document.getElementById('overlay');
+const drawer=document.getElementById('drawer');
+function openDrawer(node){
+  const c=COLORS[node.dept];
+  const pill=document.getElementById('dPill');
+  pill.textContent=DEPTNAME[node.dept];
+  pill.style.background=c+'26';pill.style.color=c;
+  document.getElementById('dTitle').textContent=node.role;
+  document.getElementById('dPerson').innerHTML=node.vacant?'<span style="color:#ff6b66">Open role — to be filled</span>':(node.person||'');
+  const head=document.querySelector('.drawer-head');
+  head.style.borderTop='3px solid '+c;
+  const body=document.getElementById('dBody');
+  body.style.setProperty('--accent',c);
+  body.innerHTML='';
+  if(node.outcome) body.innerHTML+=`<div class="sec"><h4>Primary Outcome</h4><div class="outcome">${node.outcome}</div></div>`;
+  if(node.responsibilities) body.innerHTML+=`<div class="sec"><h4>Responsibilities</h4><ul class="li">${node.responsibilities.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  if(node.groups){
+    let g='<div class="sec">';
+    node.groups.forEach(gr=>{g+=`<div class="group"><div class="gt">${gr.gt}</div><ul class="li">${gr.items.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;});
+    body.innerHTML+=g+'</div>';
+  }
+  if(node.not) body.innerHTML+=`<div class="sec neg"><h4>Not Responsible For</h4><ul class="li">${node.not.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  if(node.note) body.innerHTML+=`<div class="sec"><div class="outcome" style="border-style:dashed;color:var(--muted)">${node.note}</div></div>`;
+  overlay.classList.add('open');drawer.classList.add('open');
+}
+function closeDrawer(){overlay.classList.remove('open');drawer.classList.remove('open');}
+overlay.addEventListener('click',closeDrawer);
+document.getElementById('drawerClose').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+
+/* ---------- expand / collapse all ---------- */
+document.getElementById('expandAll').addEventListener('click',()=>{
+  document.querySelectorAll('.tree li').forEach(l=>l.classList.remove('collapsed'));
+});
+document.getElementById('collapseAll').addEventListener('click',()=>{
+  // collapse the four department nodes (direct children of root)
+  document.querySelectorAll('.tree > li > ul > li').forEach(l=>{ if(l.querySelector('ul')) l.classList.add('collapsed'); });
+});
+
+/* ---------- pan ---------- */
+const canvas=document.getElementById('canvas');
+let drag=false,sx,sy,sl,st;
+canvas.addEventListener('mousedown',e=>{
+  if(e.target.closest('.card')||e.target.closest('.zoombar'))return;
+  drag=true;sx=e.clientX;sy=e.clientY;sl=canvas.scrollLeft;st=canvas.scrollTop;canvas.classList.add('grabbing');
+});
+window.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  canvas.scrollLeft=sl-(e.clientX-sx);
+  canvas.scrollTop=st-(e.clientY-sy);
+});
+window.addEventListener('mouseup',()=>{drag=false;canvas.classList.remove('grabbing');});
+
+/* ---------- zoom ---------- */
+let z=1;
+const zlabel=document.getElementById('zlabel');
+function applyZoom(){stage.style.zoom=z;zlabel.textContent=Math.round(z*100)+'%';}
+document.getElementById('zoomIn').addEventListener('click',()=>{z=Math.min(1.6,z+0.1);applyZoom();});
+document.getElementById('zoomOut').addEventListener('click',()=>{z=Math.max(0.4,z-0.1);applyZoom();});
+document.getElementById('zoomFit').addEventListener('click',()=>{z=1;applyZoom();centerView();});
+
+/* center horizontally on load */
+function centerView(){canvas.scrollLeft=(canvas.scrollWidth-canvas.clientWidth)/2;}
+window.addEventListener('load',()=>{ setTimeout(centerView,60); });
+</script>
+</body>
+</html>
